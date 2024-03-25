@@ -9,7 +9,7 @@ interface User extends Document{
     deleted:boolean;
 }
 
-router.get('/', async(req:Request, res:Response) => {
+router.get('/users', async(req:Request, res:Response) => {
     const allUser:User[] | null = await UserModel.find({deleted:false})
     if (!allUser){
         return res.status(404).send({error:"No User Found"})
@@ -17,16 +17,16 @@ router.get('/', async(req:Request, res:Response) => {
     res.status(200).send(allUser)
 });
 
-router.get('/:id', async (req:Request,res:Response) =>{
+router.get('/users/:id', async (req:Request,res:Response) =>{
     const id:string = req.params.id
     const user:User | null = await UserModel.find({_id:id,deleted:false})
     if (!user){
         return res.status(404).send({error:"User not found"})
     }
     res.status(200).send(user);
-})
+}) 
 
-router.put('/:id', async(req:Request,res:Response)=>{
+router.put('/users/:id', async(req:Request,res:Response)=>{
     const id:string = req.params.id
     const data:Partial<User> = req.body;
 
@@ -38,7 +38,7 @@ router.put('/:id', async(req:Request,res:Response)=>{
     res.status(200).send(result)
 })
 
-router.post("/", async (req:Request,res:Response)=>{
+router.post("/users", async (req:Request,res:Response)=>{
     try{
         const data:User = req.body;
         if (!data.name || !data.email){
@@ -56,7 +56,7 @@ router.post("/", async (req:Request,res:Response)=>{
        res.status(500).send({error:"Creating failed"}) 
     }
 })
-router.delete('/:id', async(req,res)=>{
+router.delete('/users/:id', async(req,res)=>{
     const id:string = req.params.id;
     const user:User | null = await UserModel.findById(id)
     if (!user){
