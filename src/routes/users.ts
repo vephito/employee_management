@@ -1,6 +1,7 @@
 import express,{Request, Response} from 'express';
 import { UserModel } from '../db/users';
 import { Document } from 'mongoose';
+import { login, register } from '../controllers/authentication';
 const router = express.Router();
 
 interface User extends Document{
@@ -10,7 +11,7 @@ interface User extends Document{
 }
 
 router.get('/users', async(req:Request, res:Response) => {
-    const allUser:User[] | null = await UserModel.find({deleted:false})
+    const allUser:User[] | null = await UserModel.find({deleted:false}).select('name email')
     if (allUser?.length == 0){
         return res.status(404).send({error:"No User Found"})
     }
@@ -43,7 +44,6 @@ router.put('/users/:id', async(req:Request,res:Response)=>{
 router.post("/users", async (req:Request,res:Response)=>{
     try{
         const data:User = req.body;
-
         if (!data.name || !data.email){
             return res.status(400).send("Invalid Input")
         }
@@ -70,4 +70,7 @@ router.delete('/users/:id', async(req,res)=>{
     await user.save() 
     res.status(200).send("Deleted")
 })
+
+router.post('/users/register', register)
+router.post('/users/login',login)
 export default router;
