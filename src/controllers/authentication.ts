@@ -1,15 +1,16 @@
 import { UserModel } from "../db/users";
 import {Request, Response} from 'express'
-import { Document } from "mongodb";
 const bycrypt = require('bcrypt')
 require("dotenv").config();
 const jwt = require('jsonwebtoken')
+import { db } from "../db/db";
 
-interface User extends Document{
+interface User {
     name:string;
     email:string;
     password:string;
 }
+const collectionName = "users"
 export class Auth{
     async register (req:Request, res:Response){
         try{
@@ -19,15 +20,14 @@ export class Auth{
                     error:"Invalid Input"
                 })
             }
-            const existUser:User[] | null = await UserModel.findOne({
+            const existUser = await db.collection(collectionName).findOne({
                 $or: [{ name: name}, {email:email}]
             });
             if (existUser){
                 return res.status(400).send("User already exists")
             }
             const hashPassword:string = await bycrypt.hash(password, 10) 
-            const newUser:User = await new UserModel({name, email, password:hashPassword})
-            await newUser.save()
+            await db.collection(collectionName).insertOne({name, email, password:hashPassword,deleted:false})
             res.status(200).send({message: "User registered successfully"})
         }catch(err){
             console.log(err)
@@ -41,7 +41,7 @@ export class Auth{
             if (!name || !password){
                 return res.status(400).send({error: "Invalid Input"})
             }
-            const user:User | null = await UserModel.findOne({name})
+            const user = await db.collection(collectionName).findOne({name})
             if (!user){
                 return res.status(401).send({error:"Authentication failed"})
             }
@@ -50,6 +50,7 @@ export class Auth{
                 return res.status(401).send({error:"Authentication failed"})
             }
             const token = jwt.sign({id:user._id,name:user.name},secretKey)
+            console.log(token)
             res.status(200).send({token})
         }catch(err){
             console.log(err)
