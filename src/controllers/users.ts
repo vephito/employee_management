@@ -1,51 +1,63 @@
 import {Request, Response} from 'express';
-import { UserModel } from '../db/users';
-import { Document } from 'mongoose';
-import {db} from "../db/db"
-const { ObjectId } = require('mongodb');
+import { UserDatabase } from '../db/database';
 
 interface User{
     name:string;
     email:string;
-    deleted:boolean;
+    deleted?:boolean;
+    password: string;
 }
 interface CustomResponse extends Response {
     paginatedUsers?: any; 
 }
-const collectionName = "users"
 
 export class UserController{
-  
-    async getAllUser(req:Request, res:CustomResponse) {
-        // Pagination
-        // const page = parseInt(req.query.page as string ) || 1
-        // const limit = parseInt(req.query.limit as string) || 10
-        // const startIndex = (page - 1) * limit
-        //const results = await UserModel.find({deleted:false}).limit(limit).skip(startIndex)
+    db;
+    constructor() {
+        this.db = new UserDatabase("users");
+        this.createUser = this.createUser.bind(this);
+        this.updateUser = this.updateUser.bind(this);
+    }
+   
+    // Request handlers
+    getAllUser = async(req:Request, res:CustomResponse) => {
         
-        // query for all users
-        // const allUser:User[] | null = await UserModel.find({deleted:false}).select('name email')
-        // if (allUser?.length == 0){
-        //     return res.status(404).send({error:"No User Found"})
-        // }
-        const resultss = res.paginatedUsers;
-        res.status(200).send(resultss)
+        const page:number = parseInt(req.query.page as string) || 1
+        const limit:number = parseInt(req.query.limit as string ) || 10
+        const paginatedResults = await this.db.getAll(page,limit)
+        
+        res.status(200).send(paginatedResults)
     };
 
-    async getUserById(req:Request,res:Response) {
+    getUserById = async (req:Request,res:Response)=>{
         const id:string = req.params.id
-        const results = await db.collection(collectionName).findOne({_id: new ObjectId(id),deleted:false})
+        const results = await this.db.getOne(id)
         if (!results){
             return res.status(404).send({error:"User not found"})
         }
         res.status(200).send(results);
     };
 
+    getSearchUser = async (req:Request,res:Response) => {
+        try{
+            const search_data = req.query.search as string
+            const result = await this.db.getSearchUser(search_data)
+            res.status(200).send(result)
+        }catch(err){
+            console.log(err)
+            res.status(500).send({error:"Server Error"})
+        }
+    }
+
     async updateUser(req:Request,res:Response){
         try{
             const id:string = req.params.id
-            const data:Partial<User> = req.body;
-            await db.collection(collectionName).updateOne({_id: new ObjectId(id), deleted:false}, { $set: data})
+            const data = req.body;
+            let result = this.updateUserValidate(data) 
+            if (result === false){
+                return res.status(400).send({"error":"Invalid input"})
+            }
+            await this.db.updateOne(id,data) 
             res.status(200).send({"message":"update Success"})
         }catch(err){
             console.log(err)
@@ -56,30 +68,55 @@ export class UserController{
     async createUser(req:Request,res:Response){
         try{
             const data:User = req.body;
-            if (!data.name || !data.email){
+            const validate = this.createUserValidate(data)
+            if (validate === false){
                 return res.status(400).send("Invalid Input")
             }
-            const existUser = await db.collection(collectionName).findOne({
-                $or: [{ name: data.name}, {email:data.email}]
-            });
-            if (existUser){
+            const userExist = await this.db.getUser(validate)
+            if (userExist){
                 return res.status(400).send("User already exists")
             }
-            data.deleted = false;
-            await db.collection(collectionName).insertOne(data)
+            await this.db.createOne(validate)
             res.status(200).send({"message":"User created success"})
         }catch(err){
+            console.log(err)
             res.status(500).send({error:"Creating failed"}) 
         }
     }
-    async deleteUser(req:Request,res:Response){
+    deleteUser = async (req:Request,res:Response) =>{
         try{
-        const id:string = req.params.id;
-        await db.collection(collectionName).updateOne({_id: new ObjectId(id)},{$set: {deleted:true}})
-        res.status(200).send({"message":"User Deleted"})
+            const id:string = req.params.id;
+            await this.db.deleteOne(id)
+            res.status(200).send({"message":"User Deleted"})
         }catch(err){
             console.log(err)
             res.status(500).send({"error":"Failed to delete"})
         }
     }
+
+    // Validators
+    createUserValidate(data:User){
+        if (!data.name || !data.email || !data.password){
+            return false
+        }
+        let payload = {
+            name: data.name,
+            email: data.email,
+            deleted:false,
+            password:data.password,
+        }
+        return payload
+    }
+    updateUserValidate(data:User){
+        const allowedFields = ['name', 'email', 'password', 'deleted'];
+        // if (!data.name && !data.email && !data.password && !data.deleted) {
+        //     return false;
+        for (let key in data) {
+            if (!allowedFields.includes(key)){
+                return false
+            }
+        }
+        return true 
+    }
+    
 }
