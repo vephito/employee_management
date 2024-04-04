@@ -26,6 +26,17 @@ export class PersonalDataController{
         const paginatedResults = await this.db.getAll(page,limit)
         res.status(200).send(paginatedResults)
     }
+    getOneData = async(req:customRequest, res:Response) => {
+        try{
+            const id = req.userId!.id
+            console.log(id)
+            const result = await this.db.getOneData(id)
+            res.status(200).send(result)
+        }catch(err){
+            console.log(err)
+            res.status(500).send({"Error":"Internel error"})
+        }
+    }
 
     createPersonalData = async(req:customRequest,res:Response) =>{
         try{

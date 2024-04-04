@@ -81,4 +81,9 @@ export class UserDatabase{
             console.log(err)
         }
     }
+    async getOneData(user_id:string){
+        const result = await db.collection(this.collectionName).findOne({user_id:user_id,deleted:false})
+      
+        return result
+    }
 }

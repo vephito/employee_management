@@ -11,7 +11,8 @@ const auth = new Auth()
 
 
 router.get('/users', tokenVerifier.verifyToken, userController.getAllUser)
-router.get('/users/data',personalDataController.getAllData)
+router.get('/users/data',tokenVerifier.verifyToken,personalDataController.getOneData)
+router.get('/users/data/all',personalDataController.getAllData)
 router.get('/users/search',tokenVerifier.verifyToken,userController.getSearchUser)
 router.get('/users/:id',tokenVerifier.verifyToken, userController.getUserById)
   
