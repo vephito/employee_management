@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb"
+import { ObjectId, Document} from "mongodb"
 import { db } from "./db"
 
 interface User{
@@ -17,6 +17,7 @@ export class UserDatabase{
         const result = await db.collection(this.collectionName).findOne({_id: new ObjectId(id),deleted:false})
         return result
     }
+   
     async updateOne(id:string,data:User){
         const result = await db.collection(this.collectionName).updateOne({_id: new ObjectId(id), deleted:false}, { $set: data})
         return result
@@ -35,7 +36,7 @@ export class UserDatabase{
             console.log(err)
         }
     }
-    async createOne(data:User){
+    async createOne<T extends Document>(data:T){
         try{
             const result = await db.collection(this.collectionName).insertOne(data)
             return result 
@@ -66,6 +67,16 @@ export class UserDatabase{
             const result = await db.collection(this.collectionName).aggregate(pipeline)
             const array = await result.toArray()
             return array
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    // Mostly Personal Data
+    async getData(user_id:string){
+        try{
+            const result = await db.collection(this.collectionName).findOne({user_id:user_id,deleted:false})
+            return result
         }catch(err){
             console.log(err)
         }

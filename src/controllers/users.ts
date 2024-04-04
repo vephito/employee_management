@@ -7,9 +7,6 @@ interface User{
     deleted?:boolean;
     password: string;
 }
-interface CustomResponse extends Response {
-    paginatedUsers?: any; 
-}
 
 export class UserController{
     db;
@@ -20,7 +17,7 @@ export class UserController{
     }
    
     // Request handlers
-    getAllUser = async(req:Request, res:CustomResponse) => {
+    getAllUser = async(req:Request, res:Response) => {
         
         const page:number = parseInt(req.query.page as string) || 1
         const limit:number = parseInt(req.query.limit as string ) || 10
