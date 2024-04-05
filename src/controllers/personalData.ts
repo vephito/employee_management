@@ -29,8 +29,10 @@ export class PersonalDataController{
     getOneData = async(req:customRequest, res:Response) => {
         try{
             const id = req.userId!.id
-            console.log(id)
             const result = await this.db.getOneData(id)
+            if (!result){
+                return res.status(404).send({"error":"Data not found"})
+            }
             res.status(200).send(result)
         }catch(err){
             console.log(err)
@@ -38,6 +40,35 @@ export class PersonalDataController{
         }
     }
 
+    updatePersonalData = async(req:customRequest,res:Response) =>{
+        const id:string = req.params.id;
+        const user_id = req.userId!.id;
+        const body:UserData = req.body;
+        const isUser = await this.db.isUser(id,user_id)
+        if (!isUser){
+            return res.status(401).send({"error":"UnAuthorized"})
+        }
+        const validateData = this.validateUpdateData(body)
+        if(validateData === false){
+            return res.status(400).send({"error":"Invalid Input"})
+        }
+        await this.db.updateOne(id,body)
+        res.status(200).send({"message":"Success"})
+    }
+    deletePersonalData = async(req:customRequest,res:Response)=>{
+        try{
+            const id:string = req.params.id;
+            const user_id = req.userId!.id;
+            const isUser = await this.db.isUser(id,user_id)
+            if(!isUser){
+                return res.status(401).send({"error":"UnAuthorized"})
+            }
+            await this.db.deleteOne(id)
+            res.status(200).send({"message":"Delete Success"})
+        }catch(err){
+            console.log(err)
+        }
+    }
     createPersonalData = async(req:customRequest,res:Response) =>{
         try{
             const body:UserData = req.body
@@ -74,4 +105,16 @@ export class PersonalDataController{
         }
         return payload
     }
+    validateUpdateData(data:UserData){
+        const allowedFields = ['address','dateOfBirth','gender','pincode','phone']
+        for (let key in data){
+            if (!allowedFields.includes(key)){
+                return false
+            }
+        }
+       
+        return true
+    } 
+
+    
 }
