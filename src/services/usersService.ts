@@ -1,5 +1,5 @@
 import { ObjectId, Document} from "mongodb"
-import { db } from "./db"
+import { db } from "../db/db"
 
 interface User{
     name:string,
@@ -14,8 +14,48 @@ export class UserDatabase{
     }
     
     async getOne(id:string){
-        const result = await db.collection(this.collectionName).findOne({_id: new ObjectId(id),deleted:false})
-        return result
+        try{
+            let pipeline = []
+            pipeline.push({
+                $lookup:{
+                    from:"personal_data",
+                    localField:"_id",
+                    foreignField:"user_id",
+                    as:"personal_details",
+                }
+            })
+            pipeline.push({
+                $match:{
+                    personal_details: {
+                        $exists: true,
+                        $ne: [],
+                      },
+                }
+            })
+            pipeline.push({
+                $unwind:{
+                    path:"$personal_details"
+                }
+            })
+            pipeline.push({
+                $project:{
+                    _id:1,
+                    name:1,
+                    email:1,
+                    personal_details:{
+                        address:1,
+                        dateOfBirth:1,
+                        gender:1,
+                        pincode:1,
+                        phone:1
+                    }
+                }
+            })
+            const result = await db.collection(this.collectionName).aggregate(pipeline).toArray()
+            return result
+        }catch(err){
+            console.log(err)
+        }
     }
    
     async updateOne<T>(id:string,data:Partial<T>){

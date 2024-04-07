@@ -1,5 +1,6 @@
 import { Request, Response} from 'express'
-import { UserDatabase } from '../db/database';
+import { UserDatabase } from '../../services/usersService';
+import { ObjectId } from 'mongodb';
 
 interface UserData{
     user_id:string;
@@ -95,7 +96,7 @@ export class PersonalDataController{
             return false
         }
         let payload = {
-            user_id:user_id,
+            user_id: new ObjectId(user_id),
             address:data.address,
             dateOfBirth:data.dateOfBirth,
             gender:data.gender,

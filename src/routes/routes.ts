@@ -1,8 +1,11 @@
 import express from 'express';
-import { Auth } from '../controllers/authentication';
+import { Auth } from '../controllers/auth/authentication';
 import { TokenVerifier } from '../middlewares/authMiddleware';
-import { UserController } from '../controllers/users';
-import { PersonalDataController } from "../controllers/personalData"
+import { UserController } from '../controllers/users/users';
+import { PersonalDataController } from "../controllers/personalData/personalData";
+import { createUserValidate,updateUserValidate, loginUserValidate, createPersonalValidate,updatePersonalValidate } from '../middlewares/validations/userValidator'; 
+import { validate  } from '../middlewares/validations/validateMiddleware';
+
 const router = express.Router();
 const userController = new UserController()
 const personalDataController = new PersonalDataController()
@@ -17,13 +20,13 @@ router.get('/users/search',tokenVerifier.verifyToken,userController.getSearchUse
 router.get('/users/:id',tokenVerifier.verifyToken, userController.getUserById)
   
 
-router.post("/users", userController.createUser)
-router.post('/users/register', auth.register)
-router.post('/users/login',auth.login)
-router.post("/users/data",tokenVerifier.verifyToken,personalDataController.createPersonalData)
+router.post("/users", createUserValidate, validate, userController.createUser)
+router.post('/users/register', createUserValidate, validate, auth.register)
+router.post('/users/login',loginUserValidate, validate, auth.login)
+router.post("/users/data",createPersonalValidate, validate, tokenVerifier.verifyToken,personalDataController.createPersonalData)
 
-router.put('/users/data/:id',tokenVerifier.verifyToken,personalDataController.updatePersonalData)
-router.put('/users/:id',tokenVerifier.verifyToken, userController.updateUser)
+router.put('/users/data/:id',updatePersonalValidate, validate, tokenVerifier.verifyToken,personalDataController.updatePersonalData)
+router.put('/users/:id',updateUserValidate,validate, tokenVerifier.verifyToken, userController.updateUser)
 
 router.delete('/users/data/:id',tokenVerifier.verifyToken,personalDataController.deletePersonalData)
 router.delete('/users/:id',tokenVerifier.verifyToken, userController.deleteUser )

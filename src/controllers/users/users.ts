@@ -1,5 +1,5 @@
 import {Request, Response} from 'express';
-import { UserDatabase } from '../db/database';
+import { UserDatabase } from '../../services/usersService';
 
 interface User{
     name:string;
