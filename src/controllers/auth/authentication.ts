@@ -3,6 +3,7 @@ const bycrypt = require('bcrypt')
 require("dotenv").config();
 const jwt = require('jsonwebtoken')
 import {UserDatabase} from "../../services/usersService"
+
 interface User {
     name:string;
     email:string;

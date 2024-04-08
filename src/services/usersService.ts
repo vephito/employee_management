@@ -7,15 +7,25 @@ interface User{
     deleted:boolean,
     password:string
 }
+
+
 export class UserDatabase{
     collectionName:string
     constructor(collectionName:string){
         this.collectionName = collectionName
     }
-    
+    async getOneUser(id:string){
+        const result = await db.collection(this.collectionName).findOne({_id: new ObjectId(id),deleted:false})
+        return result
+    } 
     async getOne(id:string){
         try{
             let pipeline = []
+            pipeline.push({
+                $match:{
+                    _id:new ObjectId(id)
+                }
+            })
             pipeline.push({
                 $lookup:{
                     from:"personal_data",
@@ -24,14 +34,7 @@ export class UserDatabase{
                     as:"personal_details",
                 }
             })
-            pipeline.push({
-                $match:{
-                    personal_details: {
-                        $exists: true,
-                        $ne: [],
-                      },
-                }
-            })
+            
             pipeline.push({
                 $unwind:{
                     path:"$personal_details"
@@ -115,21 +118,15 @@ export class UserDatabase{
     // Mostly Personal Data
     async getData(user_id:string){
         try{
-            const result = await db.collection(this.collectionName).findOne({user_id:user_id,deleted:false})
+            const result = await db.collection(this.collectionName).findOne({user_id: new ObjectId(user_id),deleted:false})
             return result
         }catch(err){
             console.log(err)
         }
     }
-    async getOneData(user_id:string){
-        const result = await db.collection(this.collectionName).findOne({user_id:user_id,deleted:false})
-      
-        return result
-    }
+    
     async isUser(id:string,user_id:string){
         const users = await db.collection(this.collectionName).findOne({_id:new ObjectId(id),deleted:false})
-        //const userData = await db.collection(this.collectionName).findOne({user_id:user_id,deleted:false})
-        console.log(users)
         if (users!.user_id === user_id){
             return true
         }

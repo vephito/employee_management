@@ -1,11 +1,13 @@
 const express = require('express')
 import {connect} from "./db/db"
-import router from './routes/routes'
+import userRoutes from './routes/routes'
+import userDetailRoutes from "./routes/userDetails"
 require('dotenv').config({path:'./.env'})
 
 const app = express()
 app.use(express.json())
-app.use(router)
+app.use(userRoutes)
+app.use(userDetailRoutes)
 
 connect()
 .then(()=>{

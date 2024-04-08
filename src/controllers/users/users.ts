@@ -4,7 +4,7 @@ import { UserDatabase } from '../../services/usersService';
 interface User{
     name:string;
     email:string;
-    deleted?:boolean;
+    deleted:boolean;
     password: string;
 }
 
@@ -18,21 +18,29 @@ export class UserController{
    
     // Request handlers
     getAllUser = async(req:Request, res:Response) => {
-        
-        const page:number = parseInt(req.query.page as string) || 1
-        const limit:number = parseInt(req.query.limit as string ) || 10
-        const paginatedResults = await this.db.getAll(page,limit)
-        
-        res.status(200).send(paginatedResults)
+        try{
+            const page:number = parseInt(req.query.page as string) || 1
+            const limit:number = parseInt(req.query.limit as string ) || 10
+            const paginatedResults = await this.db.getAll(page,limit)
+            res.status(200).send(paginatedResults)
+        }catch(err){
+            console.log(err)
+            res.status(500).send({error:"Server error"})
+        }
     };
 
     getUserById = async (req:Request,res:Response)=>{
-        const id:string = req.params.id
-        const results = await this.db.getOne(id)
-        if (!results){
-            return res.status(404).send({error:"User not found"})
+        try{
+            const id:string = req.params.id
+            const results = await this.db.getOneUser(id)
+            if (!results){
+                return res.status(404).send({error:"User not found"})
+            }
+            res.status(200).send(results);
+        }catch(err){
+            console.error("An Error Occured",err)
+            res.status(500).send({error:"Server Error"})
         }
-        res.status(200).send(results);
     };
 
     getSearchUser = async (req:Request,res:Response) => {
