@@ -13,7 +13,7 @@ export const updateUserValidate = [
 
 export const loginUserValidate = [
     body('name').notEmpty().isString(),
-    body('password').notEmpty().isString().isLength({min:6})
+    body('password').notEmpty().isString().isLength({min:4})
 ]
 
 export const createPersonalValidate = [

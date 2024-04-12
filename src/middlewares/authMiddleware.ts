@@ -15,7 +15,6 @@ export class TokenVerifier {
         }
         try{
             const isToken = jwt.verify(token,process.env.SECRET_KEY)
-            
             req.userId = isToken
             next();
         }catch(error){

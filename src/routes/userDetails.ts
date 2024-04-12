@@ -12,7 +12,7 @@ const tokenVerifier = new TokenVerifier();
 
 const router = express.Router();
 
-router.get('/userss/data',tokenVerifier.verifyToken,personalDataController.getOneData)
+router.get('/users/data/one',tokenVerifier.verifyToken,personalDataController.getOneData)
 router.get('/users/data/all',personalDataController.getAllData)
 
 router.post("/users/data",createPersonalValidate, validate, tokenVerifier.verifyToken,personalDataController.createPersonalData)

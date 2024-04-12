@@ -12,7 +12,7 @@ interface UserData{
     deleted:boolean;
 }
 interface customRequest extends Request{
-    userId?:{id:string,name:string}
+    userId?:{id:string,name:string,isAdmin:boolean}
 }
 
 export class PersonalDataController{
@@ -49,11 +49,14 @@ export class PersonalDataController{
     updatePersonalData = async(req:customRequest,res:Response) =>{
         try{
             const id:string = req.params.id;
+            const isAdmin = req.userId!.isAdmin
             const user_id = req.userId!.id;
             const body:UserData = req.body;
-            const isUser = await this.db.isUser(id,user_id)
-            if (!isUser){
-                return res.status(401).send({"error":"UnAuthorized"})
+            if (!isAdmin){
+                const isUser = await this.db.isUser(id,user_id)
+                if (!isUser){
+                    return res.status(401).send({"error":"UnAuthorized"})
+                }
             }
             const validateData = this.validateUpdateData(body)
             if(validateData === false){
@@ -69,10 +72,13 @@ export class PersonalDataController{
     deletePersonalData = async(req:customRequest,res:Response)=>{
         try{
             const id:string = req.params.id;
+            const isAdmin = req.userId!.isAdmin
             const user_id = req.userId!.id;
-            const isUser = await this.db.isUser(id,user_id)
-            if(!isUser){
-                return res.status(401).send({"error":"UnAuthorized"})
+            if (!isAdmin){
+                const isUser = await this.db.isUser(id,user_id)
+                if(!isUser){
+                    return res.status(401).send({"error":"UnAuthorized"})
+                }
             }
             await this.db.deleteOne(id)
             res.status(200).send({"message":"Delete Success"})
@@ -123,9 +129,6 @@ export class PersonalDataController{
                 return false
             }
         }
-       
         return true
     } 
-
-    
 }

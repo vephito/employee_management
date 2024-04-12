@@ -32,7 +32,7 @@ export class UserController{
     getUserById = async (req:Request,res:Response)=>{
         try{
             const id:string = req.params.id
-            const results = await this.db.getOneUser(id)
+            const results = await this.db.getOne(id)
             if (!results){
                 return res.status(404).send({error:"User not found"})
             }
@@ -118,7 +118,7 @@ export class UserController{
         //     return false;
         for (let key in data) {
             if (!allowedFields.includes(key)){
-                return false
+                return false 
             }
         }
         return true 

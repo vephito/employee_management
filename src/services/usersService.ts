@@ -8,7 +8,6 @@ interface User{
     password:string
 }
 
-
 export class UserDatabase{
     collectionName:string
     constructor(collectionName:string){
@@ -34,7 +33,6 @@ export class UserDatabase{
                     as:"personal_details",
                 }
             })
-            
             pipeline.push({
                 $unwind:{
                     path:"$personal_details"
@@ -60,7 +58,7 @@ export class UserDatabase{
             console.log(err)
         }
     }
-   
+
     async updateOne<T>(id:string,data:Partial<T>){
         const result = await db.collection(this.collectionName).updateOne({_id: new ObjectId(id), deleted:false}, { $set: data})
         return result
@@ -92,6 +90,7 @@ export class UserDatabase{
         const existUser = await db.collection(this.collectionName).findOne({
             $or: [{ name: data.name}, {email:data.email}]
         });
+        
         return existUser
     }
     async getSearchUser(search_data:string){
@@ -127,7 +126,9 @@ export class UserDatabase{
     
     async isUser(id:string,user_id:string){
         const users = await db.collection(this.collectionName).findOne({_id:new ObjectId(id),deleted:false})
-        if (users!.user_id === user_id){
+        
+        if (users!.user_id.toString() === user_id){
+           
             return true
         }
         return false

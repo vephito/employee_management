@@ -1,0 +1,18 @@
+export interface UserDataInterface{
+    user_id:string;
+    address:string;
+    pincode:string;
+    phone:string;
+    dateOfBirth:string;
+    gender:string;
+    deleted:boolean;
+}
+
+export interface UserInterface {
+    _id?:string;
+    name:string;
+    email:string;
+    deleted:boolean;
+    password:string;
+    isAdmin?:boolean;
+}

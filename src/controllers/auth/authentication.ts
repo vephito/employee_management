@@ -3,13 +3,8 @@ const bycrypt = require('bcrypt')
 require("dotenv").config();
 const jwt = require('jsonwebtoken')
 import {UserDatabase} from "../../services/usersService"
+import { UserInterface } from "../../services/types/users"
 
-interface User {
-    name:string;
-    email:string;
-    deleted:boolean;
-    password:string;
-}
 export class Auth{
     db;
     constructor(){
@@ -17,19 +12,15 @@ export class Auth{
     }
     register = async  (req:Request, res:Response) =>{
         try{
-            const data: User = req.body
-            const validate = this.createUserValidate(data)
-            if (validate === false){
-                return res.status(400).send({
-                    error:"Invalid Input"
-                })
-            }
-            const existUser = await this.db.getUser(data)
-            if (existUser){
+            const data: UserInterface = req.body
+            const user = await this.db.getUser(data)
+            if (user){
                 return res.status(400).send("User already exists")
             }
+            const isAdmin = req.body.isAdmin || false;
             const hashPassword:string = await bycrypt.hash(data.password, 10) 
-            const payload = this.createPayload(data,hashPassword)
+          
+            const payload = this.createPayload(data,hashPassword,isAdmin)
             await this.db.createOne(payload)
             res.status(200).send({message: "User registered successfully"})
         }catch(err){
@@ -39,22 +30,16 @@ export class Auth{
     }
     login = async (req:Request, res:Response) =>{
         try{
-            const secretKey:string | undefined = process.env.SECRET_KEY
             const data = req.body
-            const validate = this.loginValidate(data)
-            if (validate === false){
-                return res.status(400).send({error: "Invalid Input"})
-            }
-            const user = await this.db.getUser(data)
+            const user = await this.authenticateUser(data);
             if (!user){
-                return res.status(401).send({error:"No user found"})
+                return res.status(401).send({error:"No user found"});
             }
-            const hashPass:string = await bycrypt.compare(data.password, user.password)
+            const hashPass = await this.comparePasswords(data.password,user.password)
             if (!hashPass){
-                return res.status(401).send({error:"Authentication faileds"})
+                throw new Error("Authentication failed")
             }
-            const token = jwt.sign({id:user._id,name:user.name},secretKey)
-            console.log(token)
+            const token = this.generateToken(user)
             res.status(200).send({token})
         }catch(err){
             console.log(err)
@@ -62,23 +47,45 @@ export class Auth{
         }
     }
     
+
+    //helpers
+    authenticateUser = async (data:any) =>{
+        const validate = this.loginValidate(data)
+        if(validate === false){
+            throw new Error("Invalid Input");
+        }
+        const user = await this.db.getUser(data)
+       
+        if (!user){
+            return null;
+        }
+        return user 
+    }
+    generateToken = (user:any) =>{
+        const secretKey : string | undefined = process.env.SECRET_KEY
+        return jwt.sign({id:user._id, name: user.name, isAdmin: user.isAdmin}, secretKey)
+    }
+    comparePasswords = async(password:string, hashedPassword:string) =>{
+        return await bycrypt.compare(password,hashedPassword)
+    }
+
     // Balidator
-    createUserValidate(data:User){
+    createUserValidate(data:UserInterface){
         if (!data.name || !data.email || !data.password){
             return false
         }
-        
     }
-    createPayload(data:User,password:string):User{
+    createPayload(data:UserInterface,password:string,isAdmin:boolean):UserInterface{
         let payload = {
             name: data.name,
             email: data.email,
             deleted:false,
             password:password,
+            isAdmin:isAdmin
         }
         return payload
     }
-    loginValidate(data:User){
+    loginValidate(data:UserInterface){
         const allowedFields = ['name','password'];
         // if (!data.name && !data.email && !data.password && !data.deleted) {
         //     return false;
