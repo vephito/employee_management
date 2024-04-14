@@ -82,7 +82,7 @@ export class UserController{
                 return res.status(400).send("User already exists")
             }
             await this.db.createOne(validate)
-            res.status(200).send({"message":"User created success"})
+            res.status(201).send({"message":"User created success"})
         }catch(err){
             console.log(err)
             res.status(500).send({error:"Creating failed"}) 

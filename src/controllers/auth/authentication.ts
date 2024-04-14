@@ -4,13 +4,13 @@ require("dotenv").config();
 const jwt = require('jsonwebtoken')
 import {UserDatabase} from "../../services/usersService"
 import { UserInterface } from "../../services/types/users"
-
+import { ObjectId } from 'mongodb';
 export class Auth{
     db;
     constructor(){
         this.db = new UserDatabase("users")
     }
-    register = async  (req:Request, res:Response) =>{
+    register = async (req:Request, res:Response) =>{
         try{
             const data: UserInterface = req.body
             const user = await this.db.getUser(data)
@@ -22,7 +22,7 @@ export class Auth{
           
             const payload = this.createPayload(data,hashPassword,isAdmin)
             await this.db.createOne(payload)
-            res.status(200).send({message: "User registered successfully"})
+            res.status(201).send({message: "User registered successfully"})
         }catch(err){
             console.log(err)
             res.status(500).send({error: "Registration failed"})
@@ -76,14 +76,17 @@ export class Auth{
         }
     }
     createPayload(data:UserInterface,password:string,isAdmin:boolean):UserInterface{
-        let payload = {
+        let payload:Partial<UserInterface> = {
             name: data.name,
             email: data.email,
             deleted:false,
             password:password,
             isAdmin:isAdmin
         }
-        return payload
+        if (typeof data._id === 'string'){
+            payload._id = new ObjectId(data._id)
+        }
+        return payload as UserInterface
     }
     loginValidate(data:UserInterface){
         const allowedFields = ['name','password'];

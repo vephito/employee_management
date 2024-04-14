@@ -13,7 +13,6 @@ const auth = new Auth()
 router.get('/users', tokenVerifier.verifyToken, userController.getAllUser)
 router.get('/users/search',tokenVerifier.verifyToken,userController.getSearchUser)
 router.get('/users/:id',tokenVerifier.verifyToken, userController.getUserById)
-  
 
 router.post("/users", createUserValidate, validate, userController.createUser)
 router.post('/users/register', createUserValidate, validate, auth.register)

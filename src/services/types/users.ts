@@ -9,7 +9,7 @@ export interface UserDataInterface{
 }
 
 export interface UserInterface {
-    _id?:string;
+    _id?:object | string;
     name:string;
     email:string;
     deleted:boolean;
