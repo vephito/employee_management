@@ -6,11 +6,13 @@ const defaultDbname = "test"
 
 //const client = new MongoClient(defaultUrl);
 
-export let db:Db;
+export let db:Db ;
 
 export const connect = async (url:string = defaultUrl, dbName: string = defaultDbname) =>{
-    const client = new MongoClient(defaultUrl);
+    const client = new MongoClient(url);
     const conn = await client.connect()
     db = conn.db(dbName);
     return client;
 }
+
+

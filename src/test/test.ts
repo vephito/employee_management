@@ -7,20 +7,21 @@ import app from "../index"
 import { Auth } from '../controllers/auth/authentication';
 const auth = new Auth()
 import {connect} from "../db/db"
-
+import {connectTest} from "../db/testdb"
 
 const user = {
     _id:"testid",
     name:"testUser",
 }
-describe('Routes', () => {
+describe('User Routes', () => {
     beforeAll(async () => { 
-        await connect(); 
+        await connectTest()
+        //await connect(); 
     });
+    
     describe("GET /users",() =>{
         it('should response status of 200',async() => {
             const Token = auth.generateToken(user)
-         
             const response = await request(app)
                 .get('/users')
                 .set('Authorization',Token)
@@ -92,7 +93,36 @@ describe('Routes', () => {
                 .send(deleteUser)
             expect(res.statusCode).toEqual(200)
         })
-
     })
-
 })
+
+
+// describe('Personal Data Routes', () => {
+//     describe('GET /users/data/all', ()=>{
+//         it('should respond 200', async() =>{
+//             const Token = auth.generateToken(user)
+//             const res = await request(app)
+//                 .get('/users/data/all')
+//                 .set('Authorization',Token)
+//             expect(res.statusCode).toEqual(200);
+//         })
+//     })
+//     describe('POST /users/data/', () =>{
+//         it('should respond with status 201', async ()=>{
+//             const testData = {
+//                 _id: '507f1f77bcf86cd799439012',
+//                 address:"testadd",
+//                 dateOfBirth:"342",
+//                 gender:"male",
+//                 pincode:"34234",
+//                 phone:"23423423",
+//             }
+//             const Token = auth.generateToken(user)
+//             const res = await request(app)
+//                 .post('/users/data')
+//                 .set('Authorization',Token)
+//                 .send(testData)
+//             expect(res.statusCode).toEqual(201)
+//         })
+//     })
+// })
