@@ -15,4 +15,3 @@ export const connect = async (url:string = defaultUrl, dbName: string = defaultD
     return client;
 }
 
-

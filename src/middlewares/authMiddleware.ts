@@ -9,7 +9,6 @@ interface userRequest extends Request{
 export class TokenVerifier {
     async verifyToken(req:userRequest,res:Response, next:any){
         const token = req.header('Authorization')
-        console.log(req)
         if (!token){
             return res.status(401).send({error:'Access denied'})
         }
@@ -18,7 +17,6 @@ export class TokenVerifier {
             req.userId = isToken
             next();
         }catch(error){
-            console.log(error)
             res.status(401).json({error:'Invalid token'});
         }
     }

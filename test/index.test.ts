@@ -1,10 +1,10 @@
 import {describe, it,after} from 'node:test';
 import request from 'supertest';
-import { Auth } from '../controllers/auth/authentication';
+import { Auth } from '../src/controllers/auth/authentication';
 import { MongoMemoryServer } from "mongodb-memory-server";
-import { connect } from '../db/db';
+import { connect } from '../src/db/db';
 import express, {Express} from 'express';
-import userRoutes from '../routes/routes'
+import userRoutes from '../src/routes/routes'
 //const {app, server} = require('../src/index')
 
 const user = {
@@ -20,15 +20,15 @@ describe('User Routes', async() =>{
     const app:Express = express()
     app.use(express.json())
     app.use(userRoutes)
-    const server = app.listen(3030, () =>{
-        console.log("server running on http://localhost:3030/")
-    })
+    // const server = app.listen(3030, () =>{
+    //     console.log("server running on http://localhost:3030/")
+    // })
     after( async() =>{
         try{
             await client.close()
             await mongoDb.stop()
             
-            server.close()
+            
         }catch(err){
             console.log(err)
         }

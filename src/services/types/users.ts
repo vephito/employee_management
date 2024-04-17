@@ -12,7 +12,7 @@ export interface UserInterface {
     _id?:object | string;
     name:string;
     email:string;
-    deleted:boolean;
+    deleted:boolean | string;
     password:string;
     isAdmin?:boolean;
 }

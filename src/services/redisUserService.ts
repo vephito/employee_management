@@ -2,16 +2,19 @@ import { ObjectId, Document} from "mongodb"
 import { db } from "../db/db"
 
 interface User{
+    _id?:any,
     name:string,
     email:string,
-    deleted:boolean|string,
+    deleted:boolean | string,
     password:string
 }
 
-export class UserDatabase{
+export class RedisUserDatabase{
     collectionName:string
-    constructor(collectionName:string){
+    client:any
+    constructor(collectionName:string,redisClient:any){
         this.collectionName = collectionName
+        this.client = redisClient 
     }
     async getOneUser(id:string){
         const result = await db.collection(this.collectionName).findOne({_id: new ObjectId(id),deleted:false})
@@ -65,8 +68,10 @@ export class UserDatabase{
     }
     async getAll(page:number, limit:number) {
         const firstIndex:number = (page - 1) * limit
-        const paginatedResults = await db.collection(this.collectionName).find({deleted:false}).skip(firstIndex).limit(limit).toArray()
-        return paginatedResults
+        const paginatedResults = await this.client.hGetAll('users:*');
+        console.log(paginatedResults);
+        return paginatedResults;
+        
     };
 
     async deleteOne(id:string){
@@ -77,13 +82,27 @@ export class UserDatabase{
             console.log(err)
         }
     }
-    async createOne<T extends Document>(data:T){
-        try{
-            const result = await db.collection(this.collectionName).insertOne(data)
-            return result 
-        }catch(err){
-            console.log(err)
+    async createOne<T extends Document>(key:string,id:any,data:T){
+        // try{
+        //     const result = await db.collection(this.collectionName).insertOne(data)
+        //     return result 
+        // }catch(err){
+        //     console.log(err)
+        // }
+        let ids;
+        if (id.insertedId) {
+            ids = id.insertedId.toString()
+        }else{
+            ids = id
         }
+       
+        console.log(data)
+        await this.client.HSET(`${key}:${ids}`,data)
+        return key 
+    }
+    async getCacheUser(id:string){
+        const res = await this.client.HGETALL(`users:${id}`)
+        return res 
     }
   
     async getUser(data:User){

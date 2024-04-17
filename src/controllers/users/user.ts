@@ -1,21 +1,20 @@
 import {Request, Response} from 'express';
 import { UserDatabase } from '../../services/usersService';
-import { RedisUserDatabase } from '../../services/redisUserService';
-const client = require('../../db/redis')
+
+
 interface User{
-    _id?:any;
     name:string;
     email:string;
-    deleted:boolean | string;
+    deleted:boolean;
     password: string;
 }
 
 export class UserController{
     db;
-    dbs;
+
     constructor() {
         this.db = new UserDatabase("users");
-        this.dbs = new RedisUserDatabase("users",client)
+
         this.createUser = this.createUser.bind(this);
         this.updateUser = this.updateUser.bind(this);
     }
@@ -28,7 +27,6 @@ export class UserController{
             const paginatedResults = await this.db.getAll(page,limit)
             res.status(200).send(paginatedResults)
         }catch(err){
-            console.log(err)
             res.status(500).send({error:"Server error"})
         }
     };
@@ -36,19 +34,12 @@ export class UserController{
     getUserById = async (req:Request,res:Response)=>{
         try{
             const id:string = req.params.id
-            const cache = await this.dbs.getCacheUser(id)
-            if (cache){
-                console.log("cache hit")
-                return res.status(200).send(cache)
-            }
             const results = await this.db.getOne(id)
             if (!results){
                 return res.status(404).send({error:"User not found"})
             }
-            await this.dbs.createOne("users",id,results)
             res.status(200).send(results);
         }catch(err){
-            console.log(err)
             res.status(500).send({error:"Server Error"})
         }
     };
@@ -82,19 +73,14 @@ export class UserController{
         try{
             const data:User = req.body;
             const validate = this.createUserValidate(data)
-            if (validate === null){
+            if (validate === false){
                 return res.status(400).send("Invalid Input")
             }
-            
-            const userExist = await this.db.getUser(data)
+            const userExist = await this.db.getUser(validate)
             if (userExist){
                 return res.status(400).send("User already exists")
             }
-            const id = await this.db.createOne(validate)
-            const key = "users"
-            validate._id = validate._id.toString()
-            await this.dbs.createOne(key,id,validate)
-          
+            await this.db.createOne(validate)
             res.status(201).send({"message":"User created success"})
         }catch(err){
             console.log(err)
@@ -114,13 +100,12 @@ export class UserController{
     // Validators
     createUserValidate(data:User){
         if (!data.name || !data.email || !data.password){
-            return null 
+            return false
         }
-        let payload:User = {
-            _id:undefined,
+        let payload = {
             name: data.name,
             email: data.email,
-            deleted:'false',
+            deleted:false,
             password:data.password,
         }
         return payload

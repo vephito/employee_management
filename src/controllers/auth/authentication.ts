@@ -24,7 +24,6 @@ export class Auth{
             await this.db.createOne(payload)
             res.status(201).send({message: "User registered successfully"})
         }catch(err){
-            console.log(err)
             res.status(500).send({error: "Registration failed"})
         }
     }
@@ -42,7 +41,6 @@ export class Auth{
             const token = this.generateToken(user)
             res.status(200).send({token})
         }catch(err){
-            console.log(err)
             res.status(500).json({error: "Login failed"})
         }
     }
