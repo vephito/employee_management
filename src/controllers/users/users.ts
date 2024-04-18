@@ -25,7 +25,7 @@ export class UserController{
         try{
             const page:number = parseInt(req.query.page as string) || 1
             const limit:number = parseInt(req.query.limit as string ) || 10
-            const paginatedResults = await this.db.getAll(page,limit)
+            const paginatedResults = await this.dbs.getAll(page,limit)
             res.status(200).send(paginatedResults)
         }catch(err){
             console.log(err)
@@ -37,15 +37,21 @@ export class UserController{
         try{
             const id:string = req.params.id
             const cache = await this.dbs.getCacheUser(id)
-            if (cache){
+            if ( Object.keys(cache).length !== 0){
                 console.log("cache hit")
                 return res.status(200).send(cache)
             }
-            const results = await this.db.getOne(id)
+            const results = await this.db.getOneUser(id)
             if (!results){
                 return res.status(404).send({error:"User not found"})
             }
-            await this.dbs.createOne("users",id,results)
+            
+            const validate = this.createUserValidate(results as User)
+            if (validate) {
+                
+                validate._id = id;
+                await this.dbs.createOne("users", id, validate);
+            }
             res.status(200).send(results);
         }catch(err){
             console.log(err)
@@ -72,6 +78,8 @@ export class UserController{
                 return res.status(400).send({"error":"Invalid input"})
             }
             await this.db.updateOne(id,data) 
+            const key = `users:${id}`
+            await this.dbs.updateOne(key,data) 
             res.status(200).send({"message":"update Success"})
         }catch(err){
             res.status(500).send({"error":"update Failed"})
@@ -105,6 +113,8 @@ export class UserController{
         try{
             const id:string = req.params.id;
             await this.db.deleteOne(id)
+            const key = `users:${id}`
+            await this.dbs.deleteOne(key)
             res.status(200).send({"message":"User Deleted"})
         }catch(err){
             res.status(500).send({"error":"Failed to delete"})

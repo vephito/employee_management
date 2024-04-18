@@ -63,20 +63,27 @@ export class RedisUserDatabase{
     }
 
     async updateOne<T>(id:string,data:Partial<T>){
-        const result = await db.collection(this.collectionName).updateOne({_id: new ObjectId(id), deleted:false}, { $set: data})
-        return result
+        //const result = await db.collection(this.collectionName).updateOne({_id: new ObjectId(id), deleted:false}, { $set: data})
+        
+        const user = await this.client.HSET(id,data)
+        return user
     }
     async getAll(page:number, limit:number) {
         const firstIndex:number = (page - 1) * limit
-        const paginatedResults = await this.client.hGetAll('users:*');
-        console.log(paginatedResults);
-        return paginatedResults;
-        
+        const paginatedResults = await this.client.SCAN(0,'users:*',0)
+        const keysForPage = paginatedResults.keys.slice(firstIndex, firstIndex + limit);
+        const res: any = [];
+        for (const key of keysForPage) {
+            const user = await this.client.HGETALL(key);
+            res.push(user);
+        }
+        return res;
     };
 
     async deleteOne(id:string){
         try{
-            const result = await db.collection(this.collectionName).updateOne({_id: new ObjectId(id)},{$set: {deleted:true}})
+            const result = await this.client.DEL(id);
+
             return result
         }catch(err){
             console.log(err)
@@ -95,8 +102,7 @@ export class RedisUserDatabase{
         }else{
             ids = id
         }
-       
-        console.log(data)
+        //HSETNX (only if the user is not created)
         await this.client.HSET(`${key}:${ids}`,data)
         return key 
     }
