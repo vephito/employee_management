@@ -1,0 +1,28 @@
+
+
+services:
+  mongodb:
+    image: mongo
+    ports:
+      - '27017:27017'
+    volumes:
+      - ./mongo-volumn:/data/db
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis-volumn:/data
+  nodejs:
+    build: .
+    ports:
+      - '3030:3030'
+    depends_on:
+      - redis
+      - mongodb
+    environment:
+      DB_CONN_STRING: 'mongodb://mongodb:27017/mydatabase'
+      SECRET_KEY: 'my-name-is-hermoine'
+      
+  

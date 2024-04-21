@@ -48,7 +48,6 @@ export class UserController{
             
             const validate = this.createUserValidate(results as User)
             if (validate) {
-                
                 validate._id = id;
                 await this.dbs.createOne("users", id, validate);
             }
@@ -63,6 +62,7 @@ export class UserController{
         try{
             const search_data = req.query.search as string
             const result = await this.db.getSearchUser(search_data)
+            
             res.status(200).send(result)
         }catch(err){
             res.status(500).send({error:"Server Error"})

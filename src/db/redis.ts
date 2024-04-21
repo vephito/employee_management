@@ -7,10 +7,20 @@ import redis = require('redis')
 //         port: 15942
 //     }
 // });
-const client = redis.createClient();
+// 
+const client = createClient({
+    socket: {
+        host: 'redis',
+        port: 6379
+    }
+});
 client.on('connect', function() {
     console.log('Connected to Redis');
 });
+// const client = redis.createClient();
+// client.on('connect', function() {
+//     console.log('Connected to Redis');
+// });
 
 
 module.exports = client

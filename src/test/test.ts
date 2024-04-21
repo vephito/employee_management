@@ -3,9 +3,7 @@ import request from 'supertest';
 import { Auth } from '../controllers/auth/authentication';
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { connect } from '../db/db';
-import express, {Express} from 'express';
-import userRoutes from '../routes/routes'
-//const {app, server} = require('../src/index')
+import app from '../app'
 
 const user = {
     _id:"testid",
@@ -17,18 +15,10 @@ describe('User Routes', async() =>{
     const url = mongoDb.getUri()
     const client = await connect(url);
 
-    const app:Express = express()
-    app.use(express.json())
-    app.use(userRoutes)
-    const server = app.listen(3030, () =>{
-        console.log("server running on http://localhost:3030/")
-    })
-    after( async() =>{
+    after(async() =>{
         try{
             await client.close()
             await mongoDb.stop()
-            
-            server.close()
         }catch(err){
             console.log(err)
         }

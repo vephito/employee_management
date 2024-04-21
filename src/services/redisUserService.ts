@@ -70,14 +70,18 @@ export class RedisUserDatabase{
     }
     async getAll(page:number, limit:number) {
         const firstIndex:number = (page - 1) * limit
-        const paginatedResults = await this.client.SCAN(0,'users:*',0)
+        const paginatedResults = await this.client.SCAN(0,'users:*',0) 
+        //const paginatedResults = await this.client.SCAN(0,'users:*',0)
         const keysForPage = paginatedResults.keys.slice(firstIndex, firstIndex + limit);
         const res: any = [];
         for (const key of keysForPage) {
-            const user = await this.client.HGETALL(key);
-            res.push(user);
+            const keyType = await this.client.type(key);
+            if (keyType === 'string') {
+                const user = await this.client.get(key);
+                res.push(JSON.parse(user));
+            } 
         }
-        return res;
+        return res
     };
 
     async deleteOne(id:string){
@@ -89,13 +93,8 @@ export class RedisUserDatabase{
             console.log(err)
         }
     }
-    async createOne<T extends Document>(key:string,id:any,data:T){
-        // try{
-        //     const result = await db.collection(this.collectionName).insertOne(data)
-        //     return result 
-        // }catch(err){
-        //     console.log(err)
-        // }
+    //HASH
+    async createOnes<T extends Document>(key:string,id:any,data:T){
         let ids;
         if (id.insertedId) {
             ids = id.insertedId.toString()
@@ -105,6 +104,17 @@ export class RedisUserDatabase{
         //HSETNX (only if the user is not created)
         await this.client.HSET(`${key}:${ids}`,data)
         return key 
+    }
+    //STRING
+    async createOne<T extends Document>(key:string,id:any,data:T){
+        let ids;
+        if (id.insertedId) {
+            ids = id.insertedId.toString()
+        }else{
+            ids = id
+        }
+        await this.client.SET(`${key}:${ids}`,JSON.stringify(data))
+        return key
     }
     async getCacheUser(id:string){
         const res = await this.client.HGETALL(`users:${id}`)
@@ -158,4 +168,21 @@ export class RedisUserDatabase{
         }
         return false
     }
+    async addUserToOnline(id:string){
+        await this.client.SADD('online:users', id)
+    }
+    async addSorted(){
+        await this.client.zAdd('rank:user',[{
+            score: 1,
+            value: 'a'
+            }]); 
+            await this.client.zAdd('rank:user',[{
+            score: 2,
+            value: 'df'
+            }]);  
+    }
+    async getByScore(){
+        await this.client.ZRANGE('rank:user', 1, -1,'withscores')
+    }
+
 }

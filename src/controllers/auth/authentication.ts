@@ -5,10 +5,15 @@ const jwt = require('jsonwebtoken')
 import {UserDatabase} from "../../services/usersService"
 import { UserInterface } from "../../services/types/users"
 import { ObjectId } from 'mongodb';
+import { RedisUserDatabase } from '../../services/redisUserService';
+const client = require('../../db/redis')
 export class Auth{
     db;
+    dbs;
+
     constructor(){
         this.db = new UserDatabase("users")
+        this.dbs = new RedisUserDatabase("users",client)
     }
     register = async (req:Request, res:Response) =>{
         try{
@@ -39,8 +44,14 @@ export class Auth{
                 throw new Error("Authentication failed")
             }
             const token = this.generateToken(user)
-            res.status(200).send({token})
+            await this.dbs.addUserToOnline(data.name)
+            await this.dbs.addSorted()
+            
+            const ress = await this.dbs.getByScore()
+            console.log(ress)
+            res.status(200).send({token,ress})
         }catch(err){
+            console.log(err)
             res.status(500).json({error: "Login failed"})
         }
     }
