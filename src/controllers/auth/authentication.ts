@@ -13,7 +13,7 @@ export class Auth{
 
     constructor(){
         this.db = new UserDatabase("users")
-        this.dbs = new RedisUserDatabase("users",client)
+        this.dbs = new RedisUserDatabase(client)
     }
     register = async (req:Request, res:Response) =>{
         try{
