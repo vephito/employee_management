@@ -7,7 +7,7 @@ import redis = require('redis')
 //         port: 15942
 //     }
 // });
-// 
+
 const client = createClient({
     socket: {
         host: 'redis',

@@ -15,7 +15,7 @@ export class UserController{
     dbs;
     constructor() {
         this.db = new UserDatabase("users");
-        this.dbs = new RedisUserDatabase("users",client)
+        this.dbs = new RedisUserDatabase(client)
         this.createUser = this.createUser.bind(this);
         this.updateUser = this.updateUser.bind(this);
     }
