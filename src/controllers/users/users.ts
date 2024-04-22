@@ -25,8 +25,12 @@ export class UserController{
         try{
             const page:number = parseInt(req.query.page as string) || 1
             const limit:number = parseInt(req.query.limit as string ) || 10
-            const paginatedResults = await this.dbs.getAll(page,limit)
-            res.status(200).send(paginatedResults)
+            const paginatedCacheResults = await this.dbs.getAll(page,limit)
+            if (paginatedCacheResults){
+                return res.status(200).send(paginatedCacheResults)
+            }
+            const Results = await this.db.getAll(page,limit)
+            res.status(200).send(Results)  
         }catch(err){
             console.log(err)
             res.status(500).send({error:"Server error"})
@@ -45,7 +49,6 @@ export class UserController{
             if (!results){
                 return res.status(404).send({error:"User not found"})
             }
-            
             const validate = this.createUserValidate(results as User)
             if (validate) {
                 validate._id = id;
