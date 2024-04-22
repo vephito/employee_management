@@ -1,5 +1,5 @@
 import { createClient } from 'redis';
-import redis = require('redis')
+
 // const client = createClient({
 //     password: 'Tuw5PtUJNBzeKsLrNpRx8BqQc2zWLX2p',
 //     socket: {
@@ -8,10 +8,17 @@ import redis = require('redis')
 //     }
 // });
 
+
+// const client = createClient({
+//     socket: {
+//         host: 'redis',
+//         port: 6389
+//     }
+// });
 const client = createClient({
     socket: {
-        host: 'redis',
-        port: 6379
+        host: 'localhost',
+        port: 6399
     }
 });
 client.on('connect', function() {

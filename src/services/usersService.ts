@@ -14,44 +14,47 @@ export class UserDatabase{
         this.collectionName = collectionName
     }
     async getOneUser(id:string){
-        const result = await db.collection(this.collectionName).findOne({_id: new ObjectId(id),deleted:false})
+        const result = await db.collection(this.collectionName).findOne({_id: new ObjectId(id),deleted:"false"})
         return result
     } 
     async getOne(id:string){
         try{
-            let pipeline = []
-            pipeline.push({
-                $match:{
-                    _id:new ObjectId(id)
+            const pipeline = [
+            {
+                $match: {
+                    _id: new ObjectId(id)
                 }
-            })
-            pipeline.push({
-                $lookup:{
-                    from:"personal_data",
-                    localField:"_id",
-                    foreignField:"user_id",
-                    as:"personal_details",
+            },
+            {
+                $lookup: {
+                    from: "personal_data",
+                    let: { userId: "$_id" },
+                    pipeline: [],
+                    as: "personal_details"
                 }
-            })
-            pipeline.push({
-                $unwind:{
-                    path:"$personal_details"
+            },
+            {
+                $unwind: {
+                    path: "$personal_details",
+                    preserveNullAndEmptyArrays: true // Preserve documents if no matching documents found in personal_data collection
                 }
-            })
-            pipeline.push({
-                $project:{
-                    _id:1,
-                    name:1,
-                    email:1,
-                    personal_details:{
-                        address:1,
-                        dateOfBirth:1,
-                        gender:1,
-                        pincode:1,
-                        phone:1
+            },
+            {
+                $project: {
+                    _id: 1,
+                    name: 1,
+                    email: 1,
+                    personal_details: {
+                        address: 1,
+                        dateOfBirth: 1,
+                        gender: 1,
+                        pincode: 1,
+                        phone: 1
                     }
                 }
-            })
+            }
+        ];
+
             const result = await db.collection(this.collectionName).aggregate(pipeline).toArray()
             return result
         }catch(err){

@@ -41,9 +41,11 @@ export class UserController{
         try{
             const id:string = req.params.id
             const cache = await this.dbs.getCacheUser(id)
-            if ( Object.keys(cache).length !== 0){
-                console.log("cache hit")
-                return res.status(200).send(cache)
+            if (cache !== null){
+                if (Object.keys(cache).length !== 0){
+                    console.log("cache hit")
+                    return res.status(200).send(cache)
+                }
             }
             const results = await this.db.getOneUser(id)
             if (!results){

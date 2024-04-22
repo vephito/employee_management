@@ -1,5 +1,4 @@
 import { ObjectId, Document} from "mongodb"
-import { db } from "../db/db"
 
 interface User{
     _id?:any,
@@ -41,7 +40,6 @@ export class RedisUserDatabase{
     async deleteOne(id:string){
         try{
             const result = await this.client.DEL(id);
-
             return result
         }catch(err){
             console.log(err)
@@ -71,12 +69,15 @@ export class RedisUserDatabase{
         return key
     }
     async getCacheUser(id:string){
-        const res = await this.client.HGETALL(`users:${id}`)
+        const res = await this.client.GET(`users:${id}`)
+        
+        let jsonData = null;
+        if (res != null){
+            jsonData = JSON.parse(res)
+            return jsonData
+        }
         return res 
     }
-  
-    
-
    
     async addUserToOnline(id:string){
         await this.client.SADD('online:users', id)
