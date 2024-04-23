@@ -8,26 +8,25 @@ import { createClient } from 'redis';
 //     }
 // });
 
-
+// services docker port 
 // const client = createClient({
 //     socket: {
 //         host: 'redis',
 //         port: 6389
 //     }
 // });
+// local docker port
 const client = createClient({
     socket: {
         host: 'localhost',
         port: 6399
     }
 });
+
+// const client = createClient();
 client.on('connect', function() {
     console.log('Connected to Redis');
 });
-// const client = redis.createClient();
-// client.on('connect', function() {
-//     console.log('Connected to Redis');
-// });
 
 
 module.exports = client

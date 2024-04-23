@@ -69,8 +69,9 @@ export class RedisUserDatabase{
         return key
     }
     async getCacheUser(id:string){
+        console.log("here")
         const res = await this.client.GET(`users:${id}`)
-        
+        console.log("error")
         let jsonData = null;
         if (res != null){
             jsonData = JSON.parse(res)

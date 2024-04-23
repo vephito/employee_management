@@ -1,5 +1,6 @@
 import { ObjectId, Document} from "mongodb"
 import { db } from "../db/db"
+import { Queue } from 'bullmq';
 
 interface User{
     name:string,
@@ -10,11 +11,17 @@ interface User{
 
 export class UserDatabase{
     collectionName:string
+    createQueue:Queue
     constructor(collectionName:string){
         this.collectionName = collectionName
+        this.createQueue = new Queue('create-queue')
     }
     async getOneUser(id:string){
-        const result = await db.collection(this.collectionName).findOne({_id: new ObjectId(id),deleted:"false"})
+        const result = await db.collection(this.collectionName).findOne({_id: new ObjectId(id), $or: [
+            { deleted: "false" },
+            { deleted: false }
+        ]
+    })
         return result
     } 
     async getOne(id:string){
@@ -63,8 +70,13 @@ export class UserDatabase{
     }
 
     async updateOne<T>(id:string,data:Partial<T>){
-        const result = await db.collection(this.collectionName).updateOne({_id: new ObjectId(id), deleted:false}, { $set: data})
-        return result
+        try{
+            const result = await db.collection(this.collectionName).updateOne({_id: new ObjectId(id), deleted:false}, { $set: data})
+            
+            return result
+        }catch(err){
+            console.log(err)
+        }
     }
     async getAll(page:number, limit:number) {
         const firstIndex:number = (page - 1) * limit
@@ -136,4 +148,5 @@ export class UserDatabase{
         }
         return false
     }
+    
 }
