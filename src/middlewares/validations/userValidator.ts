@@ -1,10 +1,17 @@
 import { body } from "express-validator";
 
+const isValidRole = (value:string):boolean=> {
+    return ['user','manager', 'admin'].includes(value)
+}
 export const createUserValidate = [
     body('name').notEmpty().isString(),
     body('email').notEmpty().isEmail(),
-    body('password').notEmpty().isString().isLength({min:6})
-]
+    body('password').notEmpty().isString().isLength({min:6}),
+    body('role')
+    .optional()
+    .isIn(['admin', 'user', 'manager'])
+    .withMessage('Invalid role. Allowed values: admin, user, editor')]
+
 export const updateUserValidate = [
     body('name').optional().notEmpty().isString(),
     body('email').optional().notEmpty().isEmail(),
@@ -17,7 +24,6 @@ export const loginUserValidate = [
 ]
 
 export const createPersonalValidate = [
-   
     body('address').notEmpty().isString(),
     body('dateOfBirth').notEmpty().isString(),
     body('gender').notEmpty().isString(),

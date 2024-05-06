@@ -71,8 +71,9 @@ export class UserDatabase{
 
     async updateOne<T>(id:string,data:Partial<T>){
         try{
-            const result = await db.collection(this.collectionName).updateOne({_id: new ObjectId(id), deleted:false}, { $set: data})
-            
+            const result = await db.collection(this.collectionName).findOneAndUpdate({_id: new ObjectId(id), deleted:false } , 
+            { $set: data}, 
+            );
             return result
         }catch(err){
             console.log(err)
@@ -141,9 +142,7 @@ export class UserDatabase{
     
     async isUser(id:string,user_id:string){
         const users = await db.collection(this.collectionName).findOne({_id:new ObjectId(id),deleted:false})
-        
         if (users!.user_id.toString() === user_id){
-           
             return true
         }
         return false

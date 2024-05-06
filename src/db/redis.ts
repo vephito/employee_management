@@ -22,11 +22,10 @@ const client = createClient({
         port: 6399
     }
 });
-
+// console.log(process.env.REDIS_URL)
 // const client = createClient();
 client.on('connect', function() {
     console.log('Connected to Redis');
 });
-
 
 module.exports = client

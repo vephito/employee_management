@@ -12,7 +12,7 @@ interface UserData{
     deleted:boolean;
 }
 interface customRequest extends Request{
-    userId?:{id:string,name:string,isAdmin:boolean}
+    userId?:{id:string,name:string,role:boolean | string}
 }
 
 export class PersonalDataController{
@@ -49,10 +49,10 @@ export class PersonalDataController{
     updatePersonalData = async(req:customRequest,res:Response) =>{
         try{
             const id:string = req.params.id;
-            const isAdmin = req.userId!.isAdmin
+            const isAdmin = req.userId!.role
             const user_id = req.userId!.id;
             const body:UserData = req.body;
-            if (!isAdmin){
+            if (isAdmin != "admin"){
                 const isUser = await this.db.isUser(id,user_id)
                 if (!isUser){
                     return res.status(401).send({"error":"UnAuthorized"})
@@ -72,9 +72,9 @@ export class PersonalDataController{
     deletePersonalData = async(req:customRequest,res:Response)=>{
         try{
             const id:string = req.params.id;
-            const isAdmin = req.userId!.isAdmin
+            const isAdmin = req.userId!.role
             const user_id = req.userId!.id;
-            if (!isAdmin){
+            if (isAdmin != "admin"){
                 const isUser = await this.db.isUser(id,user_id)
                 if(!isUser){
                     return res.status(401).send({"error":"UnAuthorized"})

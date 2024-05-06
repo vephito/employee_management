@@ -1,6 +1,6 @@
 import express from 'express';
 import { Auth } from '../controllers/auth/authentication';
-import { TokenVerifier } from '../middlewares/authMiddleware';
+import { TokenVerifier, isAdmin } from '../middlewares/authMiddleware';
 import { UserController } from '../controllers/users/users';
 import { createUserValidate,updateUserValidate, loginUserValidate} from '../middlewares/validations/userValidator'; 
 import { validate  } from '../middlewares/validations/validateMiddleware';
@@ -20,5 +20,5 @@ router.post('/users/login',loginUserValidate, validate, auth.login)
 
 router.put('/users/:id',updateUserValidate,validate, tokenVerifier.verifyToken, userController.updateUser)
 
-router.delete('/users/:id',tokenVerifier.verifyToken, userController.deleteUser )
+router.delete('/users/:id',tokenVerifier.verifyToken,isAdmin, userController.deleteUser )
 export default router;

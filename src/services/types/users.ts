@@ -14,5 +14,5 @@ export interface UserInterface {
     email:string;
     deleted:boolean | string;
     password:string;
-    isAdmin?:boolean;
+    role?:boolean | string;
 }

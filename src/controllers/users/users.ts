@@ -3,6 +3,7 @@ import { UserDatabase } from '../../services/usersService';
 import { RedisUserDatabase } from '../../services/redisUserService';
 const client = require('../../db/redis')
 import { createQueue } from '../../jobs/createUserJob';
+import {isManager, isAdmin} from '../../helpers/roles'
 interface User{
     _id?:any;
     name:string;
@@ -100,7 +101,9 @@ export class UserController{
     async createUser(req:Request,res:Response){
         try{
             const data:User = req.body;
-
+            if (!isManager(data._id) || !isAdmin(data._id)){
+                return res.status(401).send("Unauthorized")
+            }
             const validate = this.createUserValidate(data)
             if (validate === null){
                 return res.status(400).send("Invalid Input")

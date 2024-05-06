@@ -1,13 +1,21 @@
 const jwt = require('jsonwebtoken')
-import { Request,Response } from "express"
+import { NextFunction, Request,Response } from "express"
 require("dotenv").config();
 
+interface User {
+    id: string;
+    name: string;
+    role: string;
+}
+
 interface userRequest extends Request{
-    userId?:string
+    userId?:User;
 }
 
 export class TokenVerifier {
     async verifyToken(req:userRequest,res:Response, next:any){
+        let jwtToken = req.cookies
+        console.log(jwtToken)
         const token = req.header('Authorization')
         if (!token){
             return res.status(401).send({error:'Access denied'})
@@ -20,4 +28,16 @@ export class TokenVerifier {
             res.status(401).json({error:'Invalid token'});
         }
     }
+}
+
+export const isAdmin = (req:userRequest,res:Response,next: NextFunction) => {
+    if (!req.userId){
+        return res.status(401)
+    }
+    const userRole = req.userId.role
+
+    if(userRole !== "admin"){
+        return res.status(403).send({message:"Unauthroized acess"})
+    }
+    next()
 }
